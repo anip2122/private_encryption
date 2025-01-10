@@ -45,58 +45,63 @@
     }
     .triggered {
       background-color: #ff4d4d;
+      color: #000;
     }
   </style>
 </head>
 <body>
   <div id="container">
     <h1>Secure Access</h1>
-    <h2>Step 1: Enter Your Secret Word</h2>
-    <input id="secretWord" placeholder="Enter your unique secret word">
-    <button onclick="storeSecret()">Submit</button>
+    <h2>Step 1: Enter Your Personal Information</h2>
+    <textarea id="personalInfo" placeholder="Enter your personal information securely"></textarea>
+    <h2>Step 2: Create Your Secret Password</h2>
+    <input id="secretPassword" placeholder="Enter your unique secret password">
+    <button onclick="storePasswordAndInfo()">Submit</button>
     <p id="message"></p>
   </div>
 
   <script>
-    const STORAGE_KEY = "secureSiteSecrets";
+    const STORAGE_KEY = "secureSiteData";
     const TRIGGERED_KEY = "siteTriggered";
 
     // Check if the site is in the "triggered" state
     window.onload = function () {
-      const triggered = localStorage.getItem(TRIGGERED_KEY);
-      if (triggered) {
+      const triggeredData = JSON.parse(localStorage.getItem(TRIGGERED_KEY));
+      if (triggeredData) {
         document.getElementById("container").classList.add("triggered");
-        document.getElementById("message").textContent = "The site has been accessed and is now permanently triggered.";
+        document.getElementById("message").textContent = `The site has been accessed and is now permanently triggered by the password: ${triggeredData.password}`;
+        alert(`The site has been permanently triggered by the password: ${triggeredData.password}`);
       }
     };
 
-    function storeSecret() {
-      const secretWord = document.getElementById("secretWord").value.trim();
+    function storePasswordAndInfo() {
+      const personalInfo = document.getElementById("personalInfo").value.trim();
+      const secretPassword = document.getElementById("secretPassword").value.trim();
 
-      if (!secretWord) {
-        alert("Please enter a valid secret word.");
+      if (!personalInfo || !secretPassword) {
+        alert("Both personal information and a secret password must be entered.");
         return;
       }
 
-      let secrets = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      const existingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-      if (secrets.length < 2) {
-        if (secrets.includes(secretWord)) {
-          alert("This secret word is already stored.");
+      if (existingData.length < 2) {
+        if (existingData.some((entry) => entry.password === secretPassword)) {
+          alert("This secret password is already stored.");
           return;
         }
-        secrets.push(secretWord);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(secrets));
-        document.getElementById("message").textContent = "Your secret word has been stored securely.";
+
+        existingData.push({ password: secretPassword, info: personalInfo });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(existingData));
+        document.getElementById("message").textContent = "Your information and password have been stored securely.";
       } else {
-        // Check if the entered word matches one of the stored secrets
-        if (secrets.includes(secretWord)) {
+        if (existingData.some((entry) => entry.password === secretPassword)) {
           alert("Access granted. The site is now permanently triggered.");
-          localStorage.setItem(TRIGGERED_KEY, "true");
+          localStorage.setItem(TRIGGERED_KEY, JSON.stringify({ password: secretPassword }));
           document.getElementById("container").classList.add("triggered");
-          document.getElementById("message").textContent = "The site has been accessed and is now permanently triggered.";
+          document.getElementById("message").textContent = `The site has been accessed and is now permanently triggered by the password: ${secretPassword}`;
         } else {
-          alert("Access denied. Secret word does not match.");
+          alert("Access denied. Secret password does not match.");
         }
       }
     }
