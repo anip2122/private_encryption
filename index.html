@@ -53,27 +53,29 @@
   <div id="container">
     <h1>Secure Access</h1>
 
-    <!-- Initial Password Input to Access the Site -->
-    <div id="accessSection">
-      <h2>Enter Password to Access the Site</h2>
-      <input id="accessPassword" placeholder="Enter your site access password">
-      <button onclick="accessSite()">Access</button>
-      <p id="accessMessage"></p>
+    <!-- Choose Action Section -->
+    <div id="chooseActionSection">
+      <h2>Select an Option</h2>
+      <button onclick="startFirstTimeSetup()">Enter Information (First-Time Use)</button>
+      <button onclick="triggerEmergencyView()">Emergency View (Permanently Changes Site)</button>
     </div>
 
-    <!-- Main Site Content (Hidden by Default) -->
-    <div id="mainSection" style="display: none;">
-      <h2>Step 1: Enter Your Personal Information</h2>
+    <!-- First-Time Setup Section -->
+    <div id="firstTimeSetupSection" style="display: none;">
+      <h2>Enter Your Personal Information</h2>
       <textarea id="personalInfo" placeholder="Enter your personal information securely"></textarea>
-      <h2>Step 2: Create Your Secret Password</h2>
+      <h2>Create Your Secret Password</h2>
       <input id="secretPassword" placeholder="Enter your unique secret password">
       <button onclick="storePasswordAndInfo()">Submit</button>
-      <p id="message"></p>
+      <p id="setupMessage"></p>
+    </div>
 
-      <h2>Step 3: Enter Password to View Information</h2>
-      <input id="viewPassword" placeholder="Enter your password to view stored info">
-      <button onclick="viewStoredInfo()">View Info</button>
-      <div id="storedInfo" style="display: none;">
+    <!-- Emergency View Section -->
+    <div id="emergencyViewSection" style="display: none;">
+      <h2>Enter Password for Emergency View</h2>
+      <input id="emergencyPassword" placeholder="Enter your password for emergency access">
+      <button onclick="emergencyView()">Access</button>
+      <div id="emergencyInfo" style="display: none;">
         <h3>Stored Information</h3>
         <p id="infoDisplay"></p>
       </div>
@@ -89,28 +91,19 @@
       const triggeredData = JSON.parse(localStorage.getItem(TRIGGERED_KEY));
       if (triggeredData) {
         document.getElementById("container").classList.add("triggered");
-        document.getElementById("accessMessage").textContent = `The site has been accessed and is now permanently triggered by the password: ${triggeredData.password}`;
+        document.getElementById("chooseActionSection").innerHTML = `The site has been permanently triggered by the password: ${triggeredData.password}`;
         alert(`The site has been permanently triggered by the password: ${triggeredData.password}`);
       }
     };
 
-    function accessSite() {
-      const accessPassword = document.getElementById("accessPassword").value.trim();
+    function startFirstTimeSetup() {
+      document.getElementById("chooseActionSection").style.display = "none";
+      document.getElementById("firstTimeSetupSection").style.display = "block";
+    }
 
-      if (!accessPassword) {
-        alert("Please enter a password to access the site.");
-        return;
-      }
-
-      const existingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-      if (existingData.some((entry) => entry.password === accessPassword)) {
-        document.getElementById("accessSection").style.display = "none";
-        document.getElementById("mainSection").style.display = "block";
-        document.getElementById("message").textContent = "Access granted. You can now use the site.";
-      } else {
-        alert("Access denied. Invalid password.");
-      }
+    function triggerEmergencyView() {
+      document.getElementById("chooseActionSection").style.display = "none";
+      document.getElementById("emergencyViewSection").style.display = "block";
     }
 
     function storePasswordAndInfo() {
@@ -132,34 +125,29 @@
 
         existingData.push({ password: secretPassword, info: personalInfo });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(existingData));
-        document.getElementById("message").textContent = "Your information and password have been stored securely.";
+        document.getElementById("setupMessage").textContent = "Your information and password have been stored securely.";
       } else {
-        if (existingData.some((entry) => entry.password === secretPassword)) {
-          alert("Access granted. The site is now permanently triggered.");
-          localStorage.setItem(TRIGGERED_KEY, JSON.stringify({ password: secretPassword }));
-          document.getElementById("container").classList.add("triggered");
-          document.getElementById("message").textContent = `The site has been accessed and is now permanently triggered by the password: ${secretPassword}`;
-        } else {
-          alert("Access denied. Secret password does not match.");
-        }
+        alert("Maximum number of stored entries reached.");
       }
     }
 
-    function viewStoredInfo() {
-      const viewPassword = document.getElementById("viewPassword").value.trim();
+    function emergencyView() {
+      const emergencyPassword = document.getElementById("emergencyPassword").value.trim();
 
-      if (!viewPassword) {
-        alert("Please enter a password to view the stored information.");
+      if (!emergencyPassword) {
+        alert("Please enter a password for emergency access.");
         return;
       }
 
       const existingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-      if (existingData.length === 2 && existingData.some((entry) => entry.password === viewPassword)) {
+      if (existingData.some((entry) => entry.password === emergencyPassword)) {
         const infoDisplay = existingData.map((entry, index) => `Person ${index + 1}: ${entry.info}`).join("<br>");
         document.getElementById("infoDisplay").innerHTML = infoDisplay;
-        document.getElementById("storedInfo").style.display = "block";
-        alert("Access granted. Both entries are now visible.");
+        document.getElementById("emergencyInfo").style.display = "block";
+        localStorage.setItem(TRIGGERED_KEY, JSON.stringify({ password: emergencyPassword }));
+        document.getElementById("container").classList.add("triggered");
+        alert("Emergency access granted. The site has been permanently triggered.");
       } else {
         alert("Access denied. Invalid password.");
       }
