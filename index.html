@@ -68,54 +68,66 @@
     let yourKey, herKey;
 
     function generateKeys() {
-      yourKey = CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex);
-      herKey = CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex);
+      yourKey = CryptoJS.lib.WordArray.random(32).toString(CryptoJS.enc.Hex);
+      herKey = CryptoJS.lib.WordArray.random(32).toString(CryptoJS.enc.Hex);
 
-      document.getElementById('yourKey').textContent = yourKey;
-      document.getElementById('herKey').textContent = herKey;
+      document.getElementById('yourKey').textContent = "[Key generated securely]";
+      document.getElementById('herKey').textContent = "[Key generated securely]";
     }
 
     function encryptData() {
       const info = document.getElementById('info').value;
 
       if (!yourKey || !herKey) {
-        alert('Please generate keys first!');
+        alert('Whoa there, monkey! Generate the keys first, you overachiever.');
         return;
       }
 
-      const combinedKey = yourKey + herKey;
+      if (!info.trim()) {
+        alert('Nothing to encrypt, huh? Type something first, monkey.');
+        return;
+      }
+
+      const combinedKey = CryptoJS.SHA256(yourKey + herKey).toString(CryptoJS.enc.Hex);
       const encrypted = CryptoJS.AES.encrypt(info, combinedKey).toString();
 
       document.getElementById('output').value = encrypted;
+      alert('Boom! Your secrets are now locked away tighter than Fort Knox.');
     }
 
     function decryptData() {
       const encryptedText = document.getElementById('output').value;
       const inputKey = document.getElementById('decryptKey').value;
 
+      if (!encryptedText.trim()) {
+        alert('Uh-oh, no encrypted data here. Try locking something up first, monkey.');
+        return;
+      }
+
       if (!inputKey) {
-        alert('Please enter your key to decrypt!');
+        alert('Don’t play coy, monkey. Enter your key to unlock the treasure.');
         return;
       }
 
       try {
-        const combinedKey = yourKey + herKey;
+        const combinedKey = CryptoJS.SHA256(yourKey + herKey).toString(CryptoJS.enc.Hex);
 
         if (inputKey !== yourKey && inputKey !== herKey) {
-          alert('Invalid key!');
+          alert('Wrong key! Who do you think you are, a hacker?');
           return;
         }
 
         const decrypted = CryptoJS.AES.decrypt(encryptedText, combinedKey).toString(CryptoJS.enc.Utf8);
 
         if (!decrypted) {
-          alert('Decryption failed. Ensure you have the correct keys.');
+          alert('Decryption failed. Did you mess up the keys again, monkey?');
           return;
         }
 
         document.getElementById('decryptedOutput').value = decrypted;
+        alert('Congrats, Sherlock. You’ve cracked the case.');
       } catch (error) {
-        alert('Error during decryption. Please check your input.');
+        alert('Yikes! Something went wrong. Double-check your key and try again.');
       }
     }
   </script>
