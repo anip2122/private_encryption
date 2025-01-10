@@ -86,15 +86,12 @@
     const STORAGE_KEY = "secureSiteData";
     const TRIGGERED_KEY = "siteTriggered";
 
-    // Check if the site is in the "triggered" state
-    window.onload = function () {
-      const triggeredData = JSON.parse(localStorage.getItem(TRIGGERED_KEY));
-      if (triggeredData) {
-        document.getElementById("container").classList.add("triggered");
-        document.getElementById("chooseActionSection").innerHTML = `The site has been permanently triggered by the password: ${triggeredData.password}`;
-        alert(`The site has been permanently triggered by the password: ${triggeredData.password}`);
-      }
-    };
+    // Clear stored data only once for testing purposes
+if (!localStorage.getItem('dataCleared')) {
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(TRIGGERED_KEY);
+  localStorage.setItem('dataCleared', 'true');
+}
 
     function startFirstTimeSetup() {
       document.getElementById("chooseActionSection").style.display = "none";
