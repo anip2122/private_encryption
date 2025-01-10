@@ -43,6 +43,9 @@
     input {
       width: 80%;
     }
+    .triggered {
+      background-color: #ff4d4d;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
@@ -63,10 +66,12 @@
     <input type="text" id="decryptKey" placeholder="Enter your key to decrypt">
     <button onclick="decryptData()">Decrypt</button>
     <textarea id="decryptedOutput" readonly placeholder="Decrypted data will appear here"></textarea>
+    <p id="debugStatus" style="display:none;">Debug: The key has been used for decryption.</p>
   </div>
 
   <script>
     let userKey;
+    let decryptionTriggered = false;
 
     function generateKey() {
       const secretWord = document.getElementById('secretWord').value;
@@ -129,6 +134,12 @@
 
         document.getElementById('decryptedOutput').value = decrypted;
         alert('Data decrypted successfully!');
+
+        if (!decryptionTriggered) {
+          decryptionTriggered = true;
+          document.getElementById('debugStatus').style.display = 'block';
+          document.getElementById('container').classList.add('triggered');
+        }
       } catch (error) {
         alert('An error occurred during decryption.');
       }
