@@ -60,6 +60,7 @@
     <textarea id="info" placeholder="Enter your sensitive information here"></textarea>
     <button onclick="encryptData()">Encrypt</button>
     <textarea id="output" readonly placeholder="Encrypted data will appear here"></textarea>
+    <button onclick="saveData()">Save Encrypted Data</button>
     <h2>Step 3: Decrypt Information</h2>
     <input type="text" id="decryptKey" placeholder="Enter your key to decrypt">
     <button onclick="decryptData()">Decrypt</button>
@@ -140,6 +141,22 @@
       } catch (error) {
         alert('An error occurred during decryption. Please try again.');
       }
+    }
+
+    function saveData() {
+      const encryptedText = document.getElementById('output').value;
+
+      if (!encryptedText.trim()) {
+        alert('No encrypted data available to save.');
+        return;
+      }
+
+      const blob = new Blob([encryptedText], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'encrypted_data.txt';
+      link.click();
+      alert('Encrypted data saved successfully.');
     }
   </script>
 </body>
