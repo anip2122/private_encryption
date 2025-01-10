@@ -1,42 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Input</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <meta charset="utf-8">
+  <title>Secure Input and Encryption</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Nunito', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #191a1b;
+      color: #ece8e3;
+    }
+    #container {
+      text-align: center;
+      padding: 20px;
+      background: rgba(32, 32, 32, 0.9);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    textarea, input, button {
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background: #444;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #555;
+    }
+    textarea {
+      width: 80%;
+      height: 100px;
+    }
+    input {
+      width: 80%;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
-    <h1>Secure Information Entry</h1>
-    <p>Enter your information below. It will be encrypted immediately and can be shared securely.</p>
-
-    <label for="info">Your Information:</label><br>
-    <textarea id="info" rows="5" cols="50"></textarea><br><br>
-
-    <label for="key">Shared Encryption Key:</label><br>
-    <input type="text" id="key" placeholder="Enter the shared key"><br><br>
-
+  <div id="container">
+    <h1>Secure Input and Encryption</h1>
+    <h2>Step 1: Enter Sensitive Information</h2>
+    <textarea id="info" placeholder="Enter your sensitive information here"></textarea>
+    <h2>Step 2: Generate Keys</h2>
+    <button onclick="generateKeys()">Generate Keys</button>
+    <p><strong>Your Key:</strong> <span id="yourKey"></span></p>
+    <p><strong>Her Key:</strong> <span id="herKey"></span></p>
+    <h2>Step 3: Encrypt Information</h2>
     <button onclick="encryptData()">Encrypt</button>
+    <textarea id="output" readonly placeholder="Encrypted data will appear here"></textarea>
+    <h2>Step 4: Decrypt Information</h2>
+    <input type="text" id="decryptKey" placeholder="Enter your key to decrypt">
+    <button onclick="decryptData()">Decrypt</button>
+    <textarea id="decryptedOutput" readonly placeholder="Decrypted data will appear here"></textarea>
+  </div>
 
-    <h2>Encrypted Output</h2>
-    <textarea id="output" rows="5" cols="50" readonly></textarea>
+  <script>
+    let yourKey, herKey;
 
-    <script>
-        function encryptData() {
-            const info = document.getElementById("info").value;
-            const key = document.getElementById("key").value;
+    function generateKeys() {
+      yourKey = CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex);
+      herKey = CryptoJS.lib.WordArray.random(16).toString(CryptoJS.enc.Hex);
 
-            if (!info || !key) {
-                alert("Please fill in both the information and the key!");
-                return;
-            }
+      document.getElementById('yourKey').textContent = yourKey;
+      document.getElementById('herKey').textContent = herKey;
+    }
 
-            // Encrypt the information using AES
-            const encrypted = CryptoJS.AES.encrypt(info, key).toString();
+    function encryptData() {
+      const info = document.getElementById('info').value;
 
-            // Display the encrypted output
-            document.getElementById("output").value = encrypted;
+      if (!yourKey || !herKey) {
+        alert('Please generate keys first!');
+        return;
+      }
+
+      const combinedKey = yourKey + herKey;
+      const encrypted = CryptoJS.AES.encrypt(info, combinedKey).toString();
+
+      document.getElementById('output').value = encrypted;
+    }
+
+    function decryptData() {
+      const encryptedText = document.getElementById('output').value;
+      const inputKey = document.getElementById('decryptKey').value;
+
+      if (!inputKey) {
+        alert('Please enter your key to decrypt!');
+        return;
+      }
+
+      try {
+        const combinedKey = yourKey + herKey;
+
+        if (inputKey !== yourKey && inputKey !== herKey) {
+          alert('Invalid key!');
+          return;
         }
-    </script>
+
+        const decrypted = CryptoJS.AES.decrypt(encryptedText, combinedKey).toString(CryptoJS.enc.Utf8);
+
+        if (!decrypted) {
+          alert('Decryption failed. Ensure you have the correct keys.');
+          return;
+        }
+
+        document.getElementById('decryptedOutput').value = decrypted;
+      } catch (error) {
+        alert('Error during decryption. Please check your input.');
+      }
+    }
+  </script>
 </body>
 </html>
