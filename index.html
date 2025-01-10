@@ -49,15 +49,13 @@
 <body>
   <div id="container">
     <h1>Secure Input and Encryption</h1>
-    <h2>Step 1: Enter Secret Words</h2>
-    <input id="yourSecret" placeholder="Enter your secret word (Person 1)">
-    <input id="herSecret" placeholder="Enter your secret word (Person 2)">
-    <button onclick="generateKeys()">Generate Keys</button>
-    <h2>Generated Keys</h2>
-    <p><strong>Person 1 Key:</strong> <span id="yourKey"></span></p>
-    <p><strong>Person 2 Key:</strong> <span id="herKey"></span></p>
-    <h2>Step 2: Enter Sensitive Information</h2>
-    <textarea id="info" placeholder="Enter your sensitive information here"></textarea>
+    <h2>Step 1: Enter Secret Unique Word</h2>
+    <input id="secretWord" placeholder="Enter your secret unique word">
+    <button onclick="generateKey()">Generate Key</button>
+    <h2>Generated Key</h2>
+    <p><strong>Your Key:</strong> <span id="userKey"></span></p>
+    <h2>Step 2: Enter or Update Sensitive Information</h2>
+    <textarea id="info" placeholder="Enter or update your sensitive information here"></textarea>
     <button onclick="encryptData()">Encrypt</button>
     <textarea id="output" readonly placeholder="Encrypted data will appear here"></textarea>
     <button onclick="saveData()">Save Encrypted Data</button>
@@ -68,42 +66,36 @@
   </div>
 
   <script>
-    let yourKey, herKey;
+    let userKey;
 
-    function generateKeys() {
-      const yourSecret = document.getElementById('yourSecret').value;
-      const herSecret = document.getElementById('herSecret').value;
+    function generateKey() {
+      const secretWord = document.getElementById('secretWord').value;
 
-      if (!yourSecret.trim() || !herSecret.trim()) {
-        alert('Both secret words must be entered to generate keys.');
+      if (!secretWord.trim()) {
+        alert('Please enter a secret word to generate a key.');
         return;
       }
 
-      yourKey = CryptoJS.SHA256(yourSecret).toString(CryptoJS.enc.Hex);
-      herKey = CryptoJS.SHA256(herSecret).toString(CryptoJS.enc.Hex);
-
-      document.getElementById('yourKey').textContent = "[Key generated securely for Person 1]";
-      document.getElementById('herKey').textContent = "[Key generated securely for Person 2]";
+      userKey = CryptoJS.SHA256(secretWord).toString(CryptoJS.enc.Hex);
+      document.getElementById('userKey').textContent = "[Key generated securely]";
     }
 
     function encryptData() {
       const info = document.getElementById('info').value;
 
-      if (!yourKey || !herKey) {
-        alert('Keys must be generated first.');
+      if (!userKey) {
+        alert('Generate your key first!');
         return;
       }
 
       if (!info.trim()) {
-        alert('No information to encrypt. Please enter some text.');
+        alert('Please enter some information to encrypt.');
         return;
       }
 
-      const combinedKey = CryptoJS.SHA256(yourKey + herKey).toString(CryptoJS.enc.Hex);
-      const encrypted = CryptoJS.AES.encrypt(info, combinedKey).toString();
-
+      const encrypted = CryptoJS.AES.encrypt(info, userKey).toString();
       document.getElementById('output').value = encrypted;
-      alert('Data encrypted successfully.');
+      alert('Data encrypted successfully!');
     }
 
     function decryptData() {
@@ -116,30 +108,29 @@
       }
 
       if (!inputKey.trim()) {
-        alert('Please enter a key to decrypt the data.');
+        alert('Enter your key to decrypt the data.');
         return;
       }
 
       try {
-        const combinedKey = CryptoJS.SHA256(yourKey + herKey).toString(CryptoJS.enc.Hex);
+        const hashedKey = CryptoJS.SHA256(inputKey).toString(CryptoJS.enc.Hex);
 
-        if (CryptoJS.SHA256(inputKey).toString(CryptoJS.enc.Hex) !== yourKey &&
-            CryptoJS.SHA256(inputKey).toString(CryptoJS.enc.Hex) !== herKey) {
-          alert('Invalid key! Please use a valid key.');
+        if (hashedKey !== userKey) {
+          alert('Invalid key! Ensure you are using the correct secret word.');
           return;
         }
 
-        const decrypted = CryptoJS.AES.decrypt(encryptedText, combinedKey).toString(CryptoJS.enc.Utf8);
+        const decrypted = CryptoJS.AES.decrypt(encryptedText, userKey).toString(CryptoJS.enc.Utf8);
 
         if (!decrypted) {
-          alert('Decryption failed. Ensure you have the correct keys.');
+          alert('Decryption failed. Please double-check your key.');
           return;
         }
 
         document.getElementById('decryptedOutput').value = decrypted;
-        alert('Data decrypted successfully.');
+        alert('Data decrypted successfully!');
       } catch (error) {
-        alert('An error occurred during decryption. Please try again.');
+        alert('An error occurred during decryption.');
       }
     }
 
@@ -156,7 +147,7 @@
       link.href = URL.createObjectURL(blob);
       link.download = 'encrypted_data.txt';
       link.click();
-      alert('Encrypted data saved successfully.');
+      alert('Encrypted data saved successfully!');
     }
   </script>
 </body>
