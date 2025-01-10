@@ -58,6 +58,13 @@
     <input id="secretPassword" placeholder="Enter your unique secret password">
     <button onclick="storePasswordAndInfo()">Submit</button>
     <p id="message"></p>
+    <h2>Step 3: Enter Password to View Information</h2>
+    <input id="accessPassword" placeholder="Enter your password to view both entries">
+    <button onclick="viewStoredInfo()">View Info</button>
+    <div id="storedInfo" style="display: none;">
+      <h3>Stored Information</h3>
+      <p id="infoDisplay"></p>
+    </div>
   </div>
 
   <script>
@@ -103,6 +110,26 @@
         } else {
           alert("Access denied. Secret password does not match.");
         }
+      }
+    }
+
+    function viewStoredInfo() {
+      const accessPassword = document.getElementById("accessPassword").value.trim();
+
+      if (!accessPassword) {
+        alert("Please enter a password to view the stored information.");
+        return;
+      }
+
+      const existingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+      if (existingData.length === 2 && existingData.some((entry) => entry.password === accessPassword)) {
+        const infoDisplay = existingData.map((entry, index) => `Person ${index + 1}: ${entry.info}`).join("<br>");
+        document.getElementById("infoDisplay").innerHTML = infoDisplay;
+        document.getElementById("storedInfo").style.display = "block";
+        alert("Access granted. Both entries are now visible.");
+      } else {
+        alert("Access denied. Invalid password.");
       }
     }
   </script>
