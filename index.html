@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Secure Input and Encryption</title>
+  <title>Secure Access</title>
   <style>
     body {
       margin: 0;
@@ -47,118 +47,58 @@
       background-color: #ff4d4d;
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
   <div id="container">
-    <h1>Secure Input and Encryption</h1>
-    <h2>Step 1: Enter Secret Unique Word</h2>
-    <input id="secretWord" placeholder="Enter your secret unique word">
-    <button onclick="generateKey()">Generate Key</button>
-    <h2>Generated Key</h2>
-    <p><strong>Your Key:</strong> <span id="userKey"></span></p>
-    <h2>Step 2: Enter or Update Sensitive Information</h2>
-    <textarea id="info" placeholder="Enter or update your sensitive information here"></textarea>
-    <button onclick="encryptData()">Encrypt</button>
-    <textarea id="output" readonly placeholder="Encrypted data will appear here"></textarea>
-    <button onclick="saveData()">Save Encrypted Data</button>
-    <h2>Step 3: Decrypt Information</h2>
-    <input type="text" id="decryptKey" placeholder="Enter your key to decrypt">
-    <button onclick="decryptData()">Decrypt</button>
-    <textarea id="decryptedOutput" readonly placeholder="Decrypted data will appear here"></textarea>
-    <p id="debugStatus" style="display:none;">Debug: The key has been used for decryption.</p>
+    <h1>Secure Access</h1>
+    <h2>Step 1: Enter Your Secret Word</h2>
+    <input id="secretWord" placeholder="Enter your unique secret word">
+    <button onclick="storeSecret()">Submit</button>
+    <p id="message"></p>
   </div>
 
   <script>
-    let userKey;
-    let decryptionTriggered = false;
+    const STORAGE_KEY = "secureSiteSecrets";
+    const TRIGGERED_KEY = "siteTriggered";
 
-    function generateKey() {
-      const secretWord = document.getElementById('secretWord').value;
+    // Check if the site is in the "triggered" state
+    window.onload = function () {
+      const triggered = localStorage.getItem(TRIGGERED_KEY);
+      if (triggered) {
+        document.getElementById("container").classList.add("triggered");
+        document.getElementById("message").textContent = "The site has been accessed and is now permanently triggered.";
+      }
+    };
 
-      if (!secretWord.trim()) {
-        alert('Please enter a secret word to generate a key.');
+    function storeSecret() {
+      const secretWord = document.getElementById("secretWord").value.trim();
+
+      if (!secretWord) {
+        alert("Please enter a valid secret word.");
         return;
       }
 
-      userKey = CryptoJS.SHA256(secretWord).toString(CryptoJS.enc.Hex);
-      document.getElementById('userKey').textContent = "[Key generated securely]";
-    }
+      let secrets = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-    function encryptData() {
-      const info = document.getElementById('info').value;
-
-      if (!userKey) {
-        alert('Generate your key first!');
-        return;
-      }
-
-      if (!info.trim()) {
-        alert('Please enter some information to encrypt.');
-        return;
-      }
-
-      const encrypted = CryptoJS.AES.encrypt(info, userKey).toString();
-      document.getElementById('output').value = encrypted;
-      alert('Data encrypted successfully!');
-    }
-
-    function decryptData() {
-      const encryptedText = document.getElementById('output').value;
-      const inputKey = document.getElementById('decryptKey').value;
-
-      if (!encryptedText.trim()) {
-        alert('No encrypted data available. Please encrypt some data first.');
-        return;
-      }
-
-      if (!inputKey.trim()) {
-        alert('Enter your key to decrypt the data.');
-        return;
-      }
-
-      try {
-        const hashedKey = CryptoJS.SHA256(inputKey).toString(CryptoJS.enc.Hex);
-
-        if (hashedKey !== userKey) {
-          alert('Invalid key! Ensure you are using the correct secret word.');
+      if (secrets.length < 2) {
+        if (secrets.includes(secretWord)) {
+          alert("This secret word is already stored.");
           return;
         }
-
-        const decrypted = CryptoJS.AES.decrypt(encryptedText, userKey).toString(CryptoJS.enc.Utf8);
-
-        if (!decrypted) {
-          alert('Decryption failed. Please double-check your key.');
-          return;
+        secrets.push(secretWord);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(secrets));
+        document.getElementById("message").textContent = "Your secret word has been stored securely.";
+      } else {
+        // Check if the entered word matches one of the stored secrets
+        if (secrets.includes(secretWord)) {
+          alert("Access granted. The site is now permanently triggered.");
+          localStorage.setItem(TRIGGERED_KEY, "true");
+          document.getElementById("container").classList.add("triggered");
+          document.getElementById("message").textContent = "The site has been accessed and is now permanently triggered.";
+        } else {
+          alert("Access denied. Secret word does not match.");
         }
-
-        document.getElementById('decryptedOutput').value = decrypted;
-        alert('Data decrypted successfully!');
-
-        if (!decryptionTriggered) {
-          decryptionTriggered = true;
-          document.getElementById('debugStatus').style.display = 'block';
-          document.getElementById('container').classList.add('triggered');
-        }
-      } catch (error) {
-        alert('An error occurred during decryption.');
       }
-    }
-
-    function saveData() {
-      const encryptedText = document.getElementById('output').value;
-
-      if (!encryptedText.trim()) {
-        alert('No encrypted data available to save.');
-        return;
-      }
-
-      const blob = new Blob([encryptedText], { type: 'text/plain;charset=utf-8' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'encrypted_data.txt';
-      link.click();
-      alert('Encrypted data saved successfully!');
     }
   </script>
 </body>
