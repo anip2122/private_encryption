@@ -107,7 +107,7 @@
       if (existingData.some((entry) => entry.password === accessPassword)) {
         document.getElementById("accessSection").style.display = "none";
         document.getElementById("mainSection").style.display = "block";
-        alert("Access granted. Welcome!");
+        document.getElementById("message").textContent = "Access granted. You can now use the site.";
       } else {
         alert("Access denied. Invalid password.");
       }
