@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Input</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <h1>Secure Information Entry</h1>
+    <p>Enter your information below. It will be encrypted immediately and can be shared securely.</p>
+
+    <label for="info">Your Information:</label><br>
+    <textarea id="info" rows="5" cols="50"></textarea><br><br>
+
+    <label for="key">Shared Encryption Key:</label><br>
+    <input type="text" id="key" placeholder="Enter the shared key"><br><br>
+
+    <button onclick="encryptData()">Encrypt</button>
+
+    <h2>Encrypted Output</h2>
+    <textarea id="output" rows="5" cols="50" readonly></textarea>
+
+    <script>
+        function encryptData() {
+            const info = document.getElementById("info").value;
+            const key = document.getElementById("key").value;
+
+            if (!info || !key) {
+                alert("Please fill in both the information and the key!");
+                return;
+            }
+
+            // Encrypt the information using AES
+            const encrypted = CryptoJS.AES.encrypt(info, key).toString();
+
+            // Display the encrypted output
+            document.getElementById("output").value = encrypted;
+        }
+    </script>
+</body>
+</html>
