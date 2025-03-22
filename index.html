@@ -1,154 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Secure Access</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Nunito', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #191a1b;
-      color: #ece8e3;
-    }
-    #container {
-      text-align: center;
-      padding: 20px;
-      background: rgba(32, 32, 32, 0.9);
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    }
-    textarea, input, button {
-      margin: 10px 0;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: none;
-    }
-    button {
-      background: #444;
-      color: #fff;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #555;
-    }
-    textarea {
-      width: 80%;
-      height: 100px;
-    }
-    input {
-      width: 80%;
-    }
-    .triggered {
-      background-color: #ff4d4d;
-      color: #000;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balloon Game Pump Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #result {
+            font-size: 24px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <div id="container">
-    <h1>Secure Access</h1>
+    <div id="result">Simulating...</div>
 
-    <!-- Choose Action Section -->
-    <div id="chooseActionSection">
-      <h2>Select an Option</h2>
-      <button onclick="startFirstTimeSetup()">Enter Information (First-Time Use)</button>
-      <button onclick="triggerEmergencyView()">Emergency View (Permanently Changes Site)</button>
-    </div>
+    <script>
+        // Simulator logic
+        function runBalloonSimulator() {
+            const bet = 0.24960000; // SOL
+            const solToUsdRate = 129.15; // Approximate rate from your screenshot
+            const multipliers = [9.08, 17.34, 33.86, 66.90];
+            const probabilities = [
+                1.0, // Already at 9.08x
+                9.08 / 17.34, // 52.3%
+                9.08 / 33.86, // 26.8%
+                9.08 / 66.90  // 13.6%
+            ];
 
-    <!-- First-Time Setup Section -->
-    <div id="firstTimeSetupSection" style="display: none;">
-      <h2>Enter Your Personal Information</h2>
-      <textarea id="personalInfo" placeholder="Enter your personal information securely"></textarea>
-      <h2>Create Your Secret Password</h2>
-      <input id="secretPassword" placeholder="Enter your unique secret password">
-      <button onclick="storePasswordAndInfo()">Submit</button>
-      <p id="setupMessage"></p>
-    </div>
+            let currentMultiplier = 9.08;
+            let reachedIndex = 0;
 
-    <!-- Emergency View Section -->
-    <div id="emergencyViewSection" style="display: none;">
-      <h2>Enter Password for Emergency View</h2>
-      <input id="emergencyPassword" placeholder="Enter your password for emergency access">
-      <button onclick="emergencyView()">Access</button>
-      <div id="emergencyInfo" style="display: none;">
-        <h3>Stored Information</h3>
-        <p id="infoDisplay"></p>
-      </div>
-    </div>
-  </div>
+            // Simulate each "pump" (increment)
+            for (let i = 1; i < multipliers.length; i++) {
+                const random = Math.random(); // Random number between 0 and 1
+                if (random < probabilities[i]) {
+                    currentMultiplier = multipliers[i];
+                    reachedIndex = i;
+                } else {
+                    break; // Crash at the previous multiplier
+                }
+            }
 
-  <script>
-    const STORAGE_KEY = "secureSiteData";
-    const TRIGGERED_KEY = "siteTriggered";
+            // Calculate payout
+            const payoutSol = bet * currentMultiplier;
+            const payoutUsd = payoutSol * solToUsdRate;
 
-    // Clear stored data only once for testing purposes
-if (!localStorage.getItem('dataCleared')) {
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(TRIGGERED_KEY);
-  localStorage.setItem('dataCleared', 'true');
-}
-
-    function startFirstTimeSetup() {
-      document.getElementById("chooseActionSection").style.display = "none";
-      document.getElementById("firstTimeSetupSection").style.display = "block";
-    }
-
-    function triggerEmergencyView() {
-      document.getElementById("chooseActionSection").style.display = "none";
-      document.getElementById("emergencyViewSection").style.display = "block";
-    }
-
-    function storePasswordAndInfo() {
-      const personalInfo = document.getElementById("personalInfo").value.trim();
-      const secretPassword = document.getElementById("secretPassword").value.trim();
-
-      if (!personalInfo || !secretPassword) {
-        alert("Both personal information and a secret password must be entered.");
-        return;
-      }
-
-      const existingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-      if (existingData.length < 2) {
-        if (existingData.some((entry) => entry.password === secretPassword)) {
-          alert("This secret password is already stored.");
-          return;
+            // Display result
+            const resultDiv = document.getElementById('result');
+            if (currentMultiplier === 9.08) {
+                resultDiv.innerHTML = `Balloon crashed before the first pump (at ${currentMultiplier}x). You lost your bet.`;
+            } else {
+                const pumps = reachedIndex; // Number of successful pumps
+                resultDiv.innerHTML = `After ${pumps} pump${pumps === 1 ? '' : 's'}, reached ${currentMultiplier}x! Payout: ${payoutSol.toFixed(8)} SOL (≈ $${payoutUsd.toFixed(2)})`;
+            }
         }
 
-        existingData.push({ password: secretPassword, info: personalInfo });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(existingData));
-        document.getElementById("setupMessage").textContent = "Your information and password have been stored securely.";
-      } else {
-        alert("Maximum number of stored entries reached.");
-      }
-    }
-
-    function emergencyView() {
-      const emergencyPassword = document.getElementById("emergencyPassword").value.trim();
-
-      if (!emergencyPassword) {
-        alert("Please enter a password for emergency access.");
-        return;
-      }
-
-      const existingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-      if (existingData.some((entry) => entry.password === emergencyPassword)) {
-        const infoDisplay = existingData.map((entry, index) => `Person ${index + 1}: ${entry.info}`).join("<br>");
-        document.getElementById("infoDisplay").innerHTML = infoDisplay;
-        document.getElementById("emergencyInfo").style.display = "block";
-        localStorage.setItem(TRIGGERED_KEY, JSON.stringify({ password: emergencyPassword }));
-        document.getElementById("container").classList.add("triggered");
-        alert("Emergency access granted. The site has been permanently triggered.");
-      } else {
-        alert("Access denied. Invalid password.");
-      }
-    }
-  </script>
+        // Run the simulation instantly on page load
+        window.onload = runBalloonSimulator;
+    </script>
 </body>
 </html>
